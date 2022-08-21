@@ -7,7 +7,6 @@ import (
 
 type EnvironmentType struct {
 	DatabaseOptions string `env:"DATABASE_OPTIONS,required=true"`
-	JWTSigningKey   string `env:"JWT_SIGNING_KEY,required=true"`
 }
 
 var Environment EnvironmentType
