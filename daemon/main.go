@@ -3,15 +3,11 @@ package main
 import (
 	"context"
 
-	"golang.design/x/clipboard"
+	"github.com/tau-OS/xenon/daemon/auth"
 )
 
 func main() {
-	channel := clipboard.Watch(context.Background(), clipboard.FmtText)
-
-	for {
-		data := <-channel
-
-		println(string(data))
+	if err := auth.BeginAuthFlow(context.Background()); err != nil {
+		panic(err.Error())
 	}
 }
