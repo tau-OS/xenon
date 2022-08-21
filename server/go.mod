@@ -12,6 +12,7 @@ require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/gofiber/jwt/v3 v3.2.14 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
+	github.com/icza/gog v0.0.0-20220812133705-d8bff93c7e75
 	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/lib/pq v1.10.6 // indirect
