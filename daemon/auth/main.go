@@ -27,6 +27,8 @@ func generateState() (string, error) {
 }
 
 func authHandler(authCodeURL string) (code string, state string, err error) {
+	// Thanks to Xiao Yijun in the Logto Discord server
+	authCodeURL += "&prompt=consent"
 	type AuthResponse struct {
 		Code  string
 		State string
@@ -44,6 +46,9 @@ func authHandler(authCodeURL string) (code string, state string, err error) {
 	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
 		code = r.URL.Query().Get("code")
 		state = r.URL.Query().Get("state")
+
+		w.WriteHeader(200)
+		w.Write([]byte("You may close the window now."))
 
 		codeCh <- AuthResponse{
 			Code:  code,
@@ -63,7 +68,7 @@ func authHandler(authCodeURL string) (code string, state string, err error) {
 	case err := <-errorCh:
 		return "", "", err
 	case authResponse := <-codeCh:
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		if err := server.Shutdown(ctx); err != nil {
@@ -90,7 +95,7 @@ func BeginAuthFlow(ctx context.Context) error {
 		ClientSecret: "",
 		RedirectURL:  "http://localhost:6969/callback",
 		Endpoint:     provider.Endpoint(),
-		Scopes:       []string{oidc.ScopeOpenID, "offline_access", "profile"},
+		Scopes:       []string{"offline_access", oidc.ScopeOpenID, "profile"},
 	}
 
 	state, err := generateState()
@@ -120,7 +125,7 @@ func BeginAuthFlow(ctx context.Context) error {
 		return err
 	}
 
-	var claims struct{}
+	var claims map[string]interface{}
 	if err := idToken.Claims(&claims); err != nil {
 		return err
 	}
