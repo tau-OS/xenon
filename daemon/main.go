@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	if err := auth.BeginAuthFlow(context.Background()); err != nil {
+	if err := auth.RunAuthenticationFlow(context.Background()); err != nil {
 		panic(err.Error())
 	}
 }

@@ -79,7 +79,7 @@ func authHandler(authCodeURL string) (code string, state string, err error) {
 	}
 }
 
-func BeginAuthFlow(ctx context.Context) error {
+func RunAuthenticationFlow(ctx context.Context) error {
 	provider, err := oidc.NewProvider(ctx, "https://accounts.fyralabs.com/oidc")
 	if err != nil {
 		return err
