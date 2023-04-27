@@ -7,19 +7,15 @@ import (
 	"github.com/tau-OS/xenon/daemon/storage"
 )
 
-var Client *client.LogtoClient
+var Client *client.LogtoClient = client.NewLogtoClient(&client.LogtoConfig{
+	Endpoint:           "https://logto.fyralabs.com",
+	AppId:              "MKpzEzmCr8Mmov9Sz7OEE",
+	AppSecret:          "",
+	Scopes:             []string{"openid", "profile", "offline_access"},
+	Resources:          []string{},
+	Prompt:             "consent",
+}, storage.Local)
 
-func InitLogtoClient() {
-	Client = client.NewLogtoClient(&client.LogtoConfig{
-		Endpoint:           "https://accounts.fyralabs.com",
-		AppId:              "MKpzEzmCr8Mmov9Sz7OEE",
-		AppSecret:          "",
-		Scopes:             []string{"openid", "profile", "offline_access"},
-		Resources:          []string{},
-		Prompt:             "consent",
-		PersistAccessToken: true,
-	}, storage.Local)
-}
 
 func LogIn() error {
 	url, err := Client.SignIn("http://localhost:6969/callback")

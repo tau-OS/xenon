@@ -29,6 +29,7 @@ func main() {
 	}))
 
 	app.Get("/events", func(c *fiber.Ctx) error {
+		user.ChkNew(c)
 		return c.SendStatus(200)
 	})
 

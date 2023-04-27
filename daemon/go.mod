@@ -8,7 +8,7 @@ require (
 	github.com/abcum/lcp v0.0.0-20201209214815-7a3f3840be81 // indirect
 	github.com/gofrs/flock v0.8.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/logto-io/go v0.0.2 // indirect
+	github.com/logto-io/go v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -27,7 +27,7 @@ require (
 	git.mills.io/prologic/bitcask v1.0.2
 	github.com/coreos/go-oidc/v3 v3.2.0
 	github.com/k0kubun/pp/v3 v3.1.0
-	golang.org/x/exp v0.0.0-20220823124025-807a23277127 // indirect
+	golang.org/x/exp v0.0.0-20220907003533-145caa8ea1d0 // indirect
 	golang.org/x/image v0.0.0-20211028202545-6944b10bf410 // indirect
 	golang.org/x/mobile v0.0.0-20210716004757-34ab1303b554 // indirect
 	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect

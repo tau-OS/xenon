@@ -12,8 +12,6 @@ func main() {
 
 	defer storage.Local.Close()
 
-	auth.InitLogtoClient()
-
 	if err := auth.LogIn(); err != nil {
 		panic(err.Error())
 	}
