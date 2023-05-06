@@ -1,5 +1,10 @@
 # TauOS Sync System
 
+# Building
+```
+go build -ldflags "-X auth.AuthSecret=...=..." daemon
+```
+
 ## License
 Copyright (C) 2023 Fyra Labs
 

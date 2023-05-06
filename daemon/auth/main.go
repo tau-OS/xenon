@@ -7,10 +7,13 @@ import (
 	"github.com/tau-OS/xenon/daemon/storage"
 )
 
+var AuthSecret string  // defined during compile time
+const AuthId = "milfl97u099w4az99rp3l"
+
 var Client *client.LogtoClient = client.NewLogtoClient(&client.LogtoConfig{
-	Endpoint:           "https://logto.fyralabs.com",
-	AppId:              "MKpzEzmCr8Mmov9Sz7OEE",
-	AppSecret:          "",
+	Endpoint:           "https://auth.fyralabs.com",
+	AppId:              AuthId,
+	AppSecret:          AuthSecret,
 	Scopes:             []string{"openid", "profile", "offline_access"},
 	Resources:          []string{},
 	Prompt:             "consent",
