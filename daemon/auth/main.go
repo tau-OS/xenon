@@ -2,6 +2,7 @@ package auth
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -22,6 +23,7 @@ func failTo(msg string, err error) {
 }
 
 func LogIn() {
+	l.Println("Logging in...")
 	accessToken := storage.GetKey("token") // access token
 
 	if accessToken == "" {
@@ -62,7 +64,7 @@ const initTokenPrompt = `
 
 func initToken() {
 	l.Println(initTokenPrompt)
-	l.Print("Press ENTER afterwards: ")
+	fmt.Print("Press ENTER afterwards: ")
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	failTo("read input", err)

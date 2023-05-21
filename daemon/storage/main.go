@@ -2,9 +2,13 @@ package storage
 
 import (
 	"errors"
+	"log"
+	"os"
 
 	"git.mills.io/prologic/bitcask"
 )
+
+var l = log.New(os.Stderr, "[ db ] ", log.LstdFlags)
 
 type LocalStorage struct {
 	*bitcask.Bitcask
@@ -18,7 +22,7 @@ func (s *LocalStorage) GetItem(key string) string {
 	}
 
 	if err != nil {
-		panic(err.Error())
+		l.Fatalf("FAIL to get item `%s`: %s", key, err)
 	}
 
 	return string(data)
@@ -26,14 +30,20 @@ func (s *LocalStorage) GetItem(key string) string {
 
 func (s *LocalStorage) SetItem(key, value string) {
 	if err := s.Put([]byte(key), []byte(value)); err != nil {
-		panic(err.Error())
+		l.Fatalf("FAIL to set item `%s` -> `%s`: %s", key, value, err)
 	}
 }
 
 var Local *LocalStorage
 
 func InitLocalStorage() error {
-	db, err := bitcask.Open("~/.config/tausync/db")
+	l.Println("Initializing local storage...")
+	home, err := os.UserHomeDir()
+	if err != nil {
+		l.Fatal("FAIL to get home dir: " + err.Error())
+	}
+
+	db, err := bitcask.Open(home + "/.config/tausync/db")
 	if err != nil {
 		return err
 	}
