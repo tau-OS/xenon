@@ -33,7 +33,7 @@ func (s *LocalStorage) SetItem(key, value string) {
 var Local *LocalStorage
 
 func InitLocalStorage() error {
-	db, err := bitcask.Open("/tmp/db")
+	db, err := bitcask.Open("~/.config/tausync/db")
 	if err != nil {
 		return err
 	}

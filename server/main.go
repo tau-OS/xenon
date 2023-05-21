@@ -27,7 +27,7 @@ func main() {
 		AppName: "Xenon",
 	})
 
-	app.Use(jwtware.New(jwtware.Config{
+	app.Use("/api", jwtware.New(jwtware.Config{
 		KeySetURL:            "https://logto.fyralabs.com/oidc/auth", // or `/oidc/token`?
 		Claims:               &user.UserClaims{},
 		KeyRefreshUnknownKID: gog.Ptr(false),
@@ -43,21 +43,33 @@ func main() {
 	app.Get("/sign-in-callback", func(c *fiber.Ctx) error {
 		logtoClient := authcallback(c)
 		if logtoClient == nil {
-			return c.SendStatus(http.StatusInternalServerError)
+			return c.SendStatus(500)
 		}
-		return c.Send([]byte(logtoClient.GetRefreshToken())) // I think refresh token?
-	})
-
-	app.Get("/events", func(c *fiber.Ctx) error {
 		user.ChkNew(c)
+		token, err := logtoClient.GetAccessToken("")
+		if err != nil {
+			println("! Can't get access token: " + err.Error())
+			return c.SendStatus(500)
+		}
+		out := "Paste the following into the application: <br>\n"
+		out += token.Token + "." + token.Scope + "." + string(rune(token.ExpiresAt))
+		return c.Send([]byte(out))
+	})
+
+	app.Get("/api/ack", func(c *fiber.Ctx) error {
+		// for acknoledging a client running?
 		return c.SendStatus(200)
 	})
 
-	app.Get("/clipboard", func(c *fiber.Ctx) error {
+	app.Get("/api/events", func(c *fiber.Ctx) error {
 		return c.SendStatus(200)
 	})
 
-	app.Post("/clipboard", func(c *fiber.Ctx) error {
+	app.Get("/api/clipboard", func(c *fiber.Ctx) error {
+		return c.SendStatus(200)
+	})
+
+	app.Post("/api/clipboard", func(c *fiber.Ctx) error {
 		return c.SendStatus(200)
 	})
 

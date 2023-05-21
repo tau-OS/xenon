@@ -12,7 +12,5 @@ func main() {
 
 	defer storage.Local.Close()
 
-	if err := auth.LogIn(); err != nil {
-		panic(err.Error())
-	}
+	auth.LogIn()
 }
