@@ -47,17 +47,17 @@ func authcallback(c *fiber.Ctx) *client.LogtoClient {
 		println("can't get store sess: " + err.Error())
 		return nil
 	}
-	session := &SessionStorage{session: sess}
-	logtoClient := client.NewLogtoClient(authcfg, session)
+	logtoClient := client.NewLogtoClient(authcfg, &SessionStorage{session: sess})
 	// convert to http.Request as required by HandleSignInCallback()
 	req := c.Request()
 	httpreq := http.Request{}
 	if string(req.Header.Protocol()) == "https" {
 		httpreq.TLS = &tls.ConnectionState{Version: 1} // anything but nil
-		httpreq.Header.Add("X-Forwarded-Proto", c.Get("X-Forwarded-Proto"))
-		httpreq.Host = string(req.Host())
-		httpreq.RequestURI = string(req.RequestURI())
 	}
+	httpreq.Header = http.Header{}
+	httpreq.Header.Add("X-Forwarded-Proto", c.Get("X-Forwarded-Proto"))
+	httpreq.Host = string(req.Host())
+	httpreq.RequestURI = string(req.RequestURI())
 	if e := logtoClient.HandleSignInCallback(&httpreq); e != nil {
 		println("cannot handle sign in callback: " + e.Error())
 		return nil
