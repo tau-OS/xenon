@@ -22,7 +22,7 @@ func failTo(msg string, err error) {
 }
 
 func LogIn() {
-	accessToken := storage.Local.GetItem("token") // access token
+	accessToken := storage.GetKey("token") // access token
 
 	if accessToken == "" {
 		initToken()
@@ -46,7 +46,7 @@ func ack(accessToken string) {
 	if resp.StatusCode != 200 {
 		l.Printf("Acknoledgement failed: Status code %d\n", resp.StatusCode)
 		l.Println("Resetting token...")
-		storage.Local.SetItem("token", "")
+		storage.SetKey("token", "")
 		LogIn()
 	}
 }
@@ -70,5 +70,5 @@ func initToken() {
 	token := inputs[0]
 	ack(token)
 	// if we get to here, the token is valid :3
-	storage.Local.SetItem("token", token)
+	storage.SetKey("token", token)
 }
