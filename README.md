@@ -2,7 +2,7 @@
 
 # Building
 ```
-go build -ldflags "-X auth.AuthSecret=...=..." daemon
+go build -ldflags "-X main.AuthSecret=...=..." server
 ```
 
 ## License

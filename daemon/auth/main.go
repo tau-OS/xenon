@@ -64,7 +64,7 @@ const initTokenPrompt = `
 
 func initToken() {
 	l.Println(initTokenPrompt)
-	fmt.Print("Press ENTER afterwards: ")
+	fmt.Print("<<- Press ENTER afterwards: ")
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	failTo("read input", err)

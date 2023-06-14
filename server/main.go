@@ -15,6 +15,9 @@ import (
 var store = session.New()
 
 func main() {
+	if AuthSecret == "" {
+		panic("Oops! `AuthSecret` is not set! Rebuild using this: `go build -ldflags '-X auth.AuthSecret=...' server`")
+	}
 	if err := config.InitializeEnv(); err != nil {
 		panic(err.Error())
 	}
