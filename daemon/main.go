@@ -2,7 +2,8 @@ package main
 
 import (
 	"github.com/tau-OS/xenon/daemon/auth"
-	"github.com/tau-OS/xenon/daemon/gpgp"
+	"github.com/tau-OS/xenon/daemon/clipboard"
+	"github.com/tau-OS/xenon/daemon/crypt"
 	"github.com/tau-OS/xenon/daemon/storage"
 )
 
@@ -15,5 +16,7 @@ func main() {
 
 	auth.EnsureAuthenticated()
 
-	gpgp.Prep()
+	crypt.InitializeMachineIdentity()
+
+	clipboard.Run()
 }
