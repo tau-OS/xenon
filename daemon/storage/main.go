@@ -35,6 +35,7 @@ func (s *LocalStorage) SetItem(key, value string) {
 }
 
 var Local *LocalStorage
+var Keyring *KeyringStorage
 
 func InitLocalStorage() error {
 	l.Println("Initializing local storage...")

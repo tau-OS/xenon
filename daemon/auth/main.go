@@ -25,7 +25,7 @@ var logtoConfig = &client.LogtoConfig{
 var logtoClient *client.LogtoClient
 
 func initializeLogto() {
-	logtoClient = client.NewLogtoClient(logtoConfig, storage.Local)
+	logtoClient = client.NewLogtoClient(logtoConfig, storage.Keyring)
 }
 
 func startInteractiveAuth() {
