@@ -1,76 +1,87 @@
 package auth
 
 import (
-	"bufio"
-	"fmt"
+	"context"
+	"io"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
-	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/logto-io/go/client"
 
 	"github.com/tau-OS/xenon/daemon/storage"
 )
 
-var JWT_CLAIMS = jwt.MapClaims{}
 var l = log.New(os.Stderr, "[auth] ", log.LstdFlags)
 
-func failTo(msg string, err error) {
-	if err != nil {
-		l.Fatalln("FAIL to " + msg + ": " + err.Error())
+var appId = "xo0jronb7inwpqdf5ilf8"
+var logtoConfig = &client.LogtoConfig{
+	Endpoint:  "https://auth.fyralabs.com",
+	AppId:     appId,
+	Scopes:    []string{"openid", "profile", "offline_access"},
+	Resources: []string{},
+	Prompt:    "consent",
+}
+var logtoClient *client.LogtoClient
+
+func initializeLogto() {
+	logtoClient = client.NewLogtoClient(logtoConfig, storage.Keyring)
+}
+
+func startInteractiveAuth() {
+	mux := http.NewServeMux()
+	srv := &http.Server{
+		Addr:    "localhost:9090",
+		Handler: mux,
+	}
+
+	mux.Handle("/callback", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := logtoClient.HandleSignInCallback(r); err != nil {
+			l.Fatalln("Failed to handle sign-in callback: " + err.Error())
+		}
+
+		if _, err := io.WriteString(w, "You are now signed in! You may close this window."); err != nil {
+			l.Fatalln("Failed to write response: " + err.Error())
+		}
+
+		go func() {
+			if err := srv.Shutdown(context.Background()); err != nil {
+				l.Fatalln("Failed to shutdown server: " + err.Error())
+			}
+		}()
+	}))
+
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		redirect, err := logtoClient.SignIn("http://localhost:9090/callback")
+		if err != nil {
+			l.Fatalln("Failed to generate sign-in link: " + err.Error())
+		}
+
+		http.Redirect(w, r, redirect, http.StatusTemporaryRedirect)
+	}))
+
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		l.Fatalln("Failed to start server: " + err.Error())
 	}
 }
 
-func LogIn() {
-	l.Println("Logging in...")
-	accessToken := storage.GetKey("token") // access token
-
-	if accessToken == "" {
-		initToken()
-		return
-	}
-
-	ack(accessToken)
-}
-
-func ack(accessToken string) {
-	req, err := http.NewRequest("GET", "https://sync.fyralabs.com/ack", nil)
-	failTo("acknoledge session", err)
-
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, JWT_CLAIMS).SignedString(accessToken)
-	failTo("create JWT", err)
-
-	req.Header.Add("Authentication", "Bearer "+token)
-	resp, err := http.DefaultClient.Do(req)
-	failTo("connect to server", err)
-
-	if resp.StatusCode != 200 {
-		l.Printf("Acknoledgement failed: Status code %d\n", resp.StatusCode)
-		l.Println("Resetting token...")
-		storage.SetKey("token", "")
-		LogIn()
-	}
-}
-
-const initTokenPrompt = `
+const prompt = `
 ┌─────────────────────────────────────────────┐
 │ You are not signed in. On a browser, go to: │
 │                                             │
-│ ==>  https://sync.fyralabs.com/sign-in  <== │
+│       ==>  http://localhost:9090  <==       │
 │                                             │
 │ Done? Paste the authentication token below. │
 └─────────────────────────────────────────────┘`
 
-func initToken() {
-	l.Println(initTokenPrompt)
-	fmt.Print("<<- Press ENTER afterwards: ")
-	reader := bufio.NewReader(os.Stdin)
-	input, err := reader.ReadString('\n')
-	failTo("read input", err)
-	inputs := strings.Split(input, ".")
-	token := inputs[0]
-	ack(token)
-	// if we get to here, the token is valid :3
-	storage.SetKey("token", token)
+func EnsureAuthenticated() {
+	initializeLogto()
+
+	if logtoClient.IsAuthenticated() {
+		l.Println("Already authenticated, skipping interactive auth")
+		return
+	}
+
+	l.Println(prompt)
+	startInteractiveAuth()
 }

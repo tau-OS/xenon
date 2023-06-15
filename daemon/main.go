@@ -13,7 +13,7 @@ func main() {
 
 	defer storage.Local.Close()
 
-	auth.LogIn()
+	auth.EnsureAuthenticated()
 
 	gpgp.Prep()
 }

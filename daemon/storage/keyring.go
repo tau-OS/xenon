@@ -9,7 +9,9 @@ import (
 
 const SERVICE = "TauSync"
 
-func GetKey(name string) string {
+type KeyringStorage struct{}
+
+func (s *KeyringStorage) GetItem(name string) string {
 	out, err := keyring.Get(SERVICE, name)
 	if errors.Is(err, keyring.ErrNotFound) {
 		return ""
@@ -20,7 +22,7 @@ func GetKey(name string) string {
 	return out
 }
 
-func SetKey(name, val string) {
+func (s *KeyringStorage) SetItem(name, val string) {
 	err := keyring.Set(SERVICE, name, val)
 	if err != nil {
 		log.Fatalf("[keys] FAIL to set key `%s` to `%s`: %s", name, val, err.Error())
