@@ -13,7 +13,11 @@ var l = log.NewWithOptions(os.Stderr, log.Options{
 	Prefix:       "Crypt",
 })
 
-var Identity *age.X25519Identity
+var machineIdentity *age.X25519Identity
+
+func PublicKey() string {
+	return machineIdentity.Recipient().String()
+}
 
 func InitializeMachineIdentity() {
 	l.Info("Initializing machine identity...")
@@ -29,7 +33,7 @@ func InitializeMachineIdentity() {
 			l.Fatal("Failed to parse machine key: " + err.Error())
 		}
 
-		Identity = identity
+		machineIdentity = identity
 		l.Info("Machine key already exists, initialized from keyring")
 
 		return
@@ -45,7 +49,7 @@ func InitializeMachineIdentity() {
 		l.Fatal("Failed to save machine key: " + err.Error())
 	}
 
-	Identity = identity
+	machineIdentity = identity
 
 	l.Info("Machine identity initialized")
 }

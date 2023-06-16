@@ -33,8 +33,22 @@ func HandleWebSocketConnection(conn *websocket.Conn) {
 	claims := user.Claims.(jwt.MapClaims)
 	userId := claims["sub"].(string)
 
+	//TODO: Handle validation errors
+
+	deviceName := conn.Query("deviceName")
+	if deviceName == "" {
+		conn.WriteJSON(map[string]string{})
+		return
+	}
+
+	devicePublicKey := conn.Query("publicKey")
+	if devicePublicKey == "" {
+		conn.WriteJSON(map[string]string{})
+		return
+	}
+
 	conduit, _ := conduits.LoadOrStore(userId, ConduitService{})
-	server := conduit.NewServer()
+	server := conduit.NewRPCServer(deviceName, devicePublicKey)
 	if err := server.Start(websocketChannel(websocketChannel{conn})).Wait(); err != nil {
 		println(err.Error())
 	}

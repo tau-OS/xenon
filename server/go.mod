@@ -55,6 +55,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/lib/pq v1.10.6
+	github.com/samber/lo v1.38.1
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.47.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
