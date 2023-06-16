@@ -34,7 +34,8 @@ func HandleWebSocketConnection(conn *websocket.Conn) {
 	userId := claims["sub"].(string)
 
 	conduit, _ := conduits.LoadOrStore(userId, ConduitService{})
-	if err := conduit.NewServer().Start(websocketChannel(websocketChannel{conn})).Wait(); err != nil {
-		panic(err.Error())
+	server := conduit.NewServer()
+	if err := server.Start(websocketChannel(websocketChannel{conn})).Wait(); err != nil {
+		println(err.Error())
 	}
 }
