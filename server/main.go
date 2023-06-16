@@ -2,7 +2,9 @@ package main
 
 import (
 	jwtware "github.com/gofiber/contrib/jwt"
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
+	"github.com/tau-OS/xenon/server/conduit"
 	"github.com/tau-OS/xenon/server/config"
 	"github.com/tau-OS/xenon/server/database"
 )
@@ -25,18 +27,12 @@ func main() {
 	})
 
 	app.Use("/api", jwtware.New(jwtware.Config{
-		JWKSetURLs: []string{"https://logto.fyralabs.com/oidc/jwks"},
-		// SuccessHandler: func(c *fiber.Ctx) error {
-		// 	println("Success")
-		// 	return c.Next()
-		// },
+		JWKSetURLs: []string{"https://auth.fyralabs.com/oidc/jwks"},
 	}))
 
 	// This serves a websocket connection providing a JSON-RPC 2.0 API to the user's personal "conduit service"
 	// This service is specific to the user and is used as a way for connected devices to communicate with each other
-	app.Get("/api/conduit", func(c *fiber.Ctx) error {
-		return c.SendStatus(200)
-	})
+	app.Get("/api/conduit", websocket.New(conduit.HandleWebSocketConnection))
 
 	// app.Get("/api/ack", func(c *fiber.Ctx) error {
 	// 	// for acknoledging a client running?
