@@ -19,16 +19,18 @@ var l = log.NewWithOptions(os.Stderr, log.Options{
 
 var appId = "xo0jronb7inwpqdf5ilf8"
 var logtoConfig = &client.LogtoConfig{
-	Endpoint:  "https://auth.fyralabs.com",
-	AppId:     appId,
-	Scopes:    []string{"openid", "profile", "offline_access"},
-	Resources: []string{},
-	Prompt:    "consent",
+	Endpoint: "https://auth.fyralabs.com",
+	AppId:    appId,
+	Scopes:   []string{"openid", "profile", "offline_access"},
+	Resources: []string{
+		"https://sync.fyralabs.com",
+	},
+	Prompt: "consent",
 }
-var logtoClient *client.LogtoClient
+var LogtoClient *client.LogtoClient
 
 func initializeLogto() {
-	logtoClient = client.NewLogtoClient(logtoConfig, storage.Keyring)
+	LogtoClient = client.NewLogtoClient(logtoConfig, storage.Keyring)
 }
 
 func startInteractiveAuth() {
@@ -39,7 +41,7 @@ func startInteractiveAuth() {
 	}
 
 	mux.Handle("/callback", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := logtoClient.HandleSignInCallback(r); err != nil {
+		if err := LogtoClient.HandleSignInCallback(r); err != nil {
 			l.Fatal("Failed to handle sign-in callback: " + err.Error())
 		}
 
@@ -55,7 +57,7 @@ func startInteractiveAuth() {
 	}))
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		redirect, err := logtoClient.SignIn("http://localhost:9090/callback")
+		redirect, err := LogtoClient.SignIn("http://localhost:9090/callback")
 		if err != nil {
 			l.Fatal("Failed to generate sign-in link: " + err.Error())
 		}
@@ -80,7 +82,7 @@ const prompt = `
 func EnsureAuthenticated() {
 	initializeLogto()
 
-	if logtoClient.IsAuthenticated() {
+	if LogtoClient.IsAuthenticated() {
 		l.Info("Already authenticated, skipping interactive auth")
 		return
 	}
