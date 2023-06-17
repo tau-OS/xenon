@@ -39,6 +39,11 @@ type BroadcastMessageParams struct {
 	Message string
 }
 
+type BroadcastMessageNotification struct {
+	Message string
+	Sender  DeviceInfo
+}
+
 func (c *ConduitService) BroadcastMessage(ctx context.Context, params BroadcastMessageParams) error {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
@@ -50,7 +55,11 @@ func (c *ConduitService) BroadcastMessage(ctx context.Context, params BroadcastM
 	})
 
 	for _, recipient := range recipients {
-		err := recipient.RPCServer.Notify(ctx, "ReceiveBroadcast", params.Message)
+		err := recipient.RPCServer.Notify(ctx, "ReceiveBroadcast", BroadcastMessageNotification{
+			Message: params.Message,
+			// TODO: This simplifies things for now. We should probably refer to the device by its public key instead.
+			Sender: *currentDevice,
+		})
 		if err != nil {
 			// TODO: Do something with this error
 			println(err.Error())

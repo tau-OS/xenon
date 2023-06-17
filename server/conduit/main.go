@@ -7,20 +7,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var conduits = xsync.NewMapOf[ConduitService]()
+var conduits = xsync.NewMapOf[*ConduitService]()
 
 type websocketChannel struct {
 	*websocket.Conn
 }
 
 func (c websocketChannel) Send(msg []byte) error {
-	println(string(msg))
 	return c.WriteMessage(websocket.TextMessage, msg)
 }
 
 func (c websocketChannel) Recv() ([]byte, error) {
 	_, bytes, err := c.ReadMessage()
-	println(string(bytes))
 	return bytes, err
 }
 
@@ -47,7 +45,7 @@ func HandleWebSocketConnection(conn *websocket.Conn) {
 		return
 	}
 
-	conduit, _ := conduits.LoadOrStore(userId, ConduitService{})
+	conduit, _ := conduits.LoadOrStore(userId, &ConduitService{})
 	server := conduit.NewRPCServer(deviceName, devicePublicKey)
 	if err := server.Start(websocketChannel(websocketChannel{conn})).Wait(); err != nil {
 		println(err.Error())
