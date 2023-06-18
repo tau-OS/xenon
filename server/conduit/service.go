@@ -55,7 +55,7 @@ func (c *ConduitService) BroadcastMessage(ctx context.Context, params BroadcastM
 	})
 
 	for _, recipient := range recipients {
-		err := recipient.RPCServer.Notify(ctx, "ReceiveBroadcast", BroadcastMessageNotification{
+		err := recipient.RPCServer.Notify(ctx, "ReceiveBroadcastMessage", BroadcastMessageNotification{
 			Message: params.Message,
 			// TODO: This simplifies things for now. We should probably refer to the device by its public key instead.
 			Sender: *currentDevice,

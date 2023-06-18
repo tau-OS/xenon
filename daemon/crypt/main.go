@@ -1,6 +1,7 @@
 package crypt
 
 import (
+	"io"
 	"os"
 
 	"filippo.io/age"
@@ -17,6 +18,16 @@ var machineIdentity *age.X25519Identity
 
 func PublicKey() string {
 	return machineIdentity.Recipient().String()
+}
+
+func Decrypt(data io.Reader) (io.Reader, error) {
+	// TODO: We should check the sender's public key against the list of known devices
+	return age.Decrypt(data, machineIdentity)
+}
+
+func Encrypt(destination io.Writer, recipients ...age.Recipient) (io.WriteCloser, error) {
+	// TODO: Verify that our recipients is a trusted device
+	return age.Encrypt(destination, recipients...)
 }
 
 func InitializeMachineIdentity() {
