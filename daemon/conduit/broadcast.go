@@ -3,21 +3,47 @@ package conduit
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+
 	"filippo.io/age"
-	"github.com/creachadair/jrpc2"
+	"github.com/puzpuzpuz/xsync/v2"
 	"github.com/samber/lo"
 	"github.com/tau-OS/xenon/daemon/crypt"
 	conduitServer "github.com/tau-OS/xenon/server/conduit"
-	"io"
-	"os"
 )
 
-func BroadcastMessage(ctx context.Context, service *jrpc2.Client) error {
-	hostname, err := os.Hostname()
-	if err != nil {
+var broadcastHandlers = xsync.NewMap()
+
+type broadcastMessage struct {
+	Type    string `json:"type"`
+	Payload any    `json:"payload"`
+}
+
+// This function dispatches the correct handler to handle the raw, decrypted broadcast message
+func handleBroadcastMessage(message []byte) error {
+	var data json.RawMessage
+	wrapper := broadcastMessage{
+		Payload: &data,
+	}
+
+	if err := json.Unmarshal(message, &wrapper); err != nil {
 		return err
 	}
 
+	l.Debugf("received broadcast message of type %s", wrapper.Type)
+
+	handler, found := broadcastHandlers.Load(wrapper.Type)
+	if !found {
+		l.Debugf("no handler found for broadcast message type %s", wrapper.Type)
+		return nil
+	}
+
+	handler.(func(json.RawMessage))(data)
+
+	return nil
+}
+
+func Broadcast(ctx context.Context, payloadType string, payload any) error {
 	devicesRes, err := service.Call(ctx, "ListConnectedDevices", nil)
 	if err != nil {
 		return err
@@ -39,7 +65,15 @@ func BroadcastMessage(ctx context.Context, service *jrpc2.Client) error {
 		return err
 	}
 
-	if _, err := io.WriteString(writer, "Hello from "+hostname); err != nil {
+	encoded, err := json.Marshal(broadcastMessage{
+		Type:    payloadType,
+		Payload: payload,
+	})
+	if err != nil {
+		return err
+	}
+
+	if _, err := writer.Write(encoded); err != nil {
 		return err
 	}
 	if err := writer.Close(); err != nil {
@@ -53,5 +87,19 @@ func BroadcastMessage(ctx context.Context, service *jrpc2.Client) error {
 		return err
 	}
 
+	l.Debugf("broadcasted message of type %s", payloadType)
+
 	return nil
+}
+
+func RegisterBroadcastHandler[T any](payloadType string, handler func(T)) {
+	broadcastHandlers.Store(payloadType, func(data json.RawMessage) {
+		var payload T
+		if err := json.Unmarshal(data, &payload); err != nil {
+			l.Errorf("failed to unmarshal broadcast message payload for type %s: %s", payloadType, err)
+			return
+		}
+
+		handler(payload)
+	})
 }

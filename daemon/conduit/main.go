@@ -2,19 +2,15 @@ package conduit
 
 import (
 	"context"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
-	"time"
 
-	"bytes"
 	"github.com/charmbracelet/log"
 	"github.com/creachadair/jrpc2"
 	"github.com/creachadair/jrpc2/channel"
 	"github.com/tau-OS/xenon/daemon/auth"
 	"github.com/tau-OS/xenon/daemon/crypt"
-	conduitServer "github.com/tau-OS/xenon/server/conduit"
 
 	"golang.org/x/net/websocket"
 )
@@ -25,7 +21,10 @@ import (
 var l = log.NewWithOptions(os.Stderr, log.Options{
 	ReportCaller: true,
 	Prefix:       "Conduit",
+	Level:        log.DebugLevel,
 })
+
+var service *jrpc2.Client
 
 func Run() {
 	hostname, err := os.Hostname()
@@ -33,7 +32,7 @@ func Run() {
 		l.Fatal(err)
 	}
 
-	conduitURL, err := url.Parse("ws://192.168.64.1:8080/api/conduit")
+	conduitURL, err := url.Parse("ws://192.168.122.1:8080/api/conduit")
 	if err != nil {
 		l.Fatal(err)
 	}
@@ -43,7 +42,7 @@ func Run() {
 	query.Add("publicKey", crypt.PublicKey())
 	conduitURL.RawQuery = query.Encode()
 
-	originURL, err := url.Parse("http://192.168.64.1:8080")
+	originURL, err := url.Parse("http://192.168.122.1:8080")
 	if err != nil {
 		l.Fatal(err)
 	}
@@ -65,30 +64,8 @@ func Run() {
 		l.Fatal(err)
 	}
 
-	service := jrpc2.NewClient(channel.RawJSON(ws, ws), &jrpc2.ClientOptions{
-		OnNotify: func(req *jrpc2.Request) {
-			switch req.Method() {
-			case "ReceiveBroadcastMessage":
-				var notification conduitServer.BroadcastMessageNotification
-				if err := req.UnmarshalParams(&notification); err != nil {
-					l.Fatal(err)
-				}
-
-				reader, err := crypt.Decrypt(bytes.NewReader(notification.Message))
-				if err != nil {
-					l.Errorf("failed to decrypt broadcast message from %s (%s): %s", notification.Sender.PublicKey, notification.Sender.Name, err)
-					return
-				}
-
-				bytes, err := io.ReadAll(reader)
-				if err != nil {
-					l.Errorf("failed to read decrypted broadcast message from %s (%s): %s", notification.Sender.PublicKey, notification.Sender.Name, err)
-					return
-				}
-
-				l.Infof("owo: %s", string(bytes))
-			}
-		},
+	service = jrpc2.NewClient(channel.RawJSON(ws, ws), &jrpc2.ClientOptions{
+		OnNotify: handleNotify,
 	})
 
 	res, err := service.Call(context.Background(), "rpc.serverInfo", nil)
@@ -97,12 +74,4 @@ func Run() {
 	}
 
 	l.Infof("Connected to conduit server: %s", res.ResultString())
-
-	for {
-		if err := BroadcastMessage(context.Background(), service); err != nil {
-			l.Error(err)
-		}
-
-		time.Sleep(5 * time.Second)
-	}
 }

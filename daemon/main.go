@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/tau-OS/xenon/daemon/auth"
+	"github.com/tau-OS/xenon/daemon/clipboard"
 	"github.com/tau-OS/xenon/daemon/conduit"
 	"github.com/tau-OS/xenon/daemon/crypt"
 	"github.com/tau-OS/xenon/daemon/storage"
@@ -18,7 +19,8 @@ func main() {
 
 	crypt.InitializeMachineIdentity()
 
-	// clipboard.Run()
+	go clipboard.Run()
+	go conduit.Run()
 
-	conduit.Run()
+	select {} // temporary
 }
