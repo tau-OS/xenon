@@ -47,6 +47,11 @@ func HandleWebSocketConnection(conn *websocket.Conn) {
 
 	conduit, _ := conduits.LoadOrStore(userId, &ConduitService{})
 	server := conduit.NewRPCServer(deviceName, devicePublicKey)
+	conn.SetCloseHandler(func(code int, text string) error {
+		server.Stop()
+		conduit.RemoveDevice(devicePublicKey)
+		return nil
+	})
 	if err := server.Start(websocketChannel(websocketChannel{conn})).Wait(); err != nil {
 		println(err.Error())
 	}

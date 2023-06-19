@@ -1,7 +1,6 @@
 package conduit
 
 import (
-	"bytes"
 	"context"
 	"io"
 	"net/http"
@@ -9,11 +8,10 @@ import (
 	"os"
 	"time"
 
-	"filippo.io/age"
+	"bytes"
 	"github.com/charmbracelet/log"
 	"github.com/creachadair/jrpc2"
 	"github.com/creachadair/jrpc2/channel"
-	"github.com/samber/lo"
 	"github.com/tau-OS/xenon/daemon/auth"
 	"github.com/tau-OS/xenon/daemon/crypt"
 	conduitServer "github.com/tau-OS/xenon/server/conduit"
@@ -76,7 +74,7 @@ func Run() {
 					l.Fatal(err)
 				}
 
-				reader, err := crypt.Decrypt(bytes.NewBuffer([]byte(notification.Message)))
+				reader, err := crypt.Decrypt(bytes.NewReader(notification.Message))
 				if err != nil {
 					l.Errorf("failed to decrypt broadcast message from %s (%s): %s", notification.Sender.PublicKey, notification.Sender.Name, err)
 					return
@@ -88,7 +86,7 @@ func Run() {
 					return
 				}
 
-				l.Info("owo: %s", string(bytes))
+				l.Infof("owo: %s", string(bytes))
 			}
 		},
 	})
@@ -101,42 +99,10 @@ func Run() {
 	l.Infof("Connected to conduit server: %s", res.ResultString())
 
 	for {
-		devicesRes, err := service.Call(context.Background(), "ListConnectedDevices", nil)
-		if err != nil {
-			l.Fatal(err)
+		if err := BroadcastMessage(context.Background(), service); err != nil {
+			l.Error(err)
 		}
 
-		var connectedDevices []conduitServer.DeviceInfo
-		if err := devicesRes.UnmarshalResult(&connectedDevices); err != nil {
-			l.Fatal(err)
-		}
-
-		recipients := lo.Map(connectedDevices, func(device conduitServer.DeviceInfo, index int) age.Recipient {
-			return lo.Must(age.ParseX25519Recipient(device.PublicKey))
-		})
-
-		encrypted := &bytes.Buffer{}
-
-		writer, err := crypt.Encrypt(encrypted, recipients...)
-		if err != nil {
-			l.Fatal(err)
-		}
-
-		if _, err := io.WriteString(writer, "Hello from "+hostname); err != nil {
-			l.Fatal(err)
-		}
-		if err := writer.Close(); err != nil {
-			l.Fatal(err)
-		}
-
-		lo.Must(io.ReadAll(lo.Must(crypt.Decrypt(bytes.NewBuffer([]byte(encrypted.String()))))))
-
-		_, err = service.Call(context.Background(), "BroadcastMessage", conduitServer.BroadcastMessageParams{
-			Message: encrypted.String(),
-		})
-		if err != nil {
-			l.Fatal(err)
-		}
 		time.Sleep(5 * time.Second)
 	}
 }

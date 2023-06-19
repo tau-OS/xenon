@@ -36,11 +36,11 @@ func (c *ConduitService) ListConnectedDevices(ctx context.Context) []DeviceInfo 
 }
 
 type BroadcastMessageParams struct {
-	Message string
+	Message []byte
 }
 
 type BroadcastMessageNotification struct {
-	Message string
+	Message []byte
 	Sender  DeviceInfo
 }
 
@@ -96,4 +96,13 @@ func (c *ConduitService) NewRPCServer(name, publicKey string) *jrpc2.Server {
 	})
 
 	return server
+}
+
+func (c *ConduitService) RemoveDevice(publicKey string) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	c.connectedDevices = lo.Filter(c.connectedDevices, func(device ConnectedDevice, index int) bool {
+		return device.PublicKey != publicKey
+	})
 }
