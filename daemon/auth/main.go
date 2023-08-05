@@ -15,6 +15,7 @@ import (
 var l = log.NewWithOptions(os.Stderr, log.Options{
 	ReportCaller: true,
 	Prefix:       "Auth",
+	Level:        log.ParseLevel(os.Getenv("LOG_LEVEL")),
 })
 
 var appId = "xo0jronb7inwpqdf5ilf8"
@@ -76,7 +77,6 @@ const prompt = `
 │                                             │
 │       ==>  http://localhost:9090  <==       │
 │                                             │
-│ Done? Paste the authentication token below. │
 └─────────────────────────────────────────────┘`
 
 func EnsureAuthenticated() {

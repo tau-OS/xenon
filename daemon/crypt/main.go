@@ -12,6 +12,7 @@ import (
 var l = log.NewWithOptions(os.Stderr, log.Options{
 	ReportCaller: true,
 	Prefix:       "Crypt",
+	Level:        log.ParseLevel(os.Getenv("LOG_LEVEL")),
 })
 
 var machineIdentity *age.X25519Identity

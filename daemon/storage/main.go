@@ -10,6 +10,7 @@ import (
 var l = log.NewWithOptions(os.Stderr, log.Options{
 	ReportCaller: true,
 	Prefix:       "Storage",
+	Level:        log.ParseLevel(os.Getenv("LOG_LEVEL")),
 })
 
 type LocalStorage struct {

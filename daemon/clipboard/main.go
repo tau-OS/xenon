@@ -12,7 +12,7 @@ import (
 var l = log.NewWithOptions(os.Stderr, log.Options{
 	ReportCaller: true,
 	Prefix:       "Clipboard",
-	Level:        log.DebugLevel,
+	Level:        log.ParseLevel(os.Getenv("LOG_LEVEL")),
 })
 
 type clipboardPayload struct {
