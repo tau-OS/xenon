@@ -2,6 +2,7 @@ package conduit
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/creachadair/jrpc2"
@@ -55,21 +56,18 @@ func (c *ConduitService) BroadcastMessage(ctx context.Context, params BroadcastM
 	})
 
 	for _, recipient := range recipients {
-		err := recipient.RPCServer.Notify(ctx, "ReceiveBroadcastMessage", BroadcastMessageNotification{
+		// we don't care if the message was sent successfully or not
+		_ = recipient.RPCServer.Notify(ctx, "ReceiveBroadcastMessage", BroadcastMessageNotification{
 			Message: params.Message,
 			// TODO: This simplifies things for now. We should probably refer to the device by its public key instead.
 			Sender: *currentDevice,
 		})
-		if err != nil {
-			// TODO: Do something with this error
-			println(err.Error())
-		}
 	}
 
 	return nil
 }
 
-func (c *ConduitService) NewRPCServer(name, publicKey string) *jrpc2.Server {
+func (c *ConduitService) NewRPCServer(name, publicKey string) (*jrpc2.Server, error) {
 	deviceInfo := &DeviceInfo{
 		Name:      name,
 		PublicKey: publicKey,
@@ -88,14 +86,18 @@ func (c *ConduitService) NewRPCServer(name, publicKey string) *jrpc2.Server {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	// TODO: If device already exists, disconnect it or deny connection
+	if _, found := lo.Find(c.connectedDevices, func(device ConnectedDevice) bool {
+		return device.PublicKey == publicKey
+	}); found {
+		return nil, errors.New("device already connected")
+	}
 
 	c.connectedDevices = append(c.connectedDevices, ConnectedDevice{
 		DeviceInfo: deviceInfo,
 		RPCServer:  server,
 	})
 
-	return server
+	return server, nil
 }
 
 func (c *ConduitService) RemoveDevice(publicKey string) {

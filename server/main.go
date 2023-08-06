@@ -32,7 +32,7 @@ func main() {
 
 	// This serves a websocket connection providing a JSON-RPC 2.0 API to the user's personal "conduit service"
 	// This service is specific to the user and is used as a way for connected devices to communicate with each other
-	app.Get("/api/conduit", websocket.New(conduit.HandleWebSocketConnection))
+	app.Get("/api/conduit", conduit.HandleConduitRequest, websocket.New(conduit.HandleWebSocketConnection))
 
 	// app.Get("/api/ack", func(c *fiber.Ctx) error {
 	// 	// for acknoledging a client running?
