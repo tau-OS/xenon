@@ -76,6 +76,7 @@ func HandleWebSocketConnection(conn *websocket.Conn) {
 	conduit, _ := conduits.LoadOrStore(userId, &ConduitService{})
 	server, err := conduit.NewRPCServer(params.DeviceName, params.DevicePublicKey)
 	if err != nil {
+		// TODO: Maybe we shouldn't send the raw error message back?
 		conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.ClosePolicyViolation, err.Error()))
 		time.Sleep(closeGracePeriod)
 		conn.Close()
