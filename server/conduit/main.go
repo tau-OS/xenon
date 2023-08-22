@@ -82,11 +82,13 @@ func HandleWebSocketConnection(conn *websocket.Conn) {
 		return
 	}
 
+	defer conduit.RemoveDevice(params.DevicePublicKey)
+
 	conn.SetCloseHandler(func(code int, text string) error {
 		server.Stop()
-		conduit.RemoveDevice(params.DevicePublicKey)
 		return nil
 	})
+
 	if err := server.Start(websocketChannel(websocketChannel{conn})).Wait(); err != nil {
 		println(err.Error())
 	}
