@@ -90,6 +90,8 @@ func HandleWebSocketConnection(conn *websocket.Conn) {
 	})
 
 	if err := server.Start(websocketChannel(websocketChannel{conn})).Wait(); err != nil {
-		println(err.Error())
+		conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.ClosePolicyViolation, err.Error()))
+		time.Sleep(closeGracePeriod)
+		conn.Close()
 	}
 }
